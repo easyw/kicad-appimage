@@ -7,11 +7,11 @@ ingredients:
   packages:
     - kicad
     - libcurl3
-  dist: xenial
+  dist: focal
   sources:
-    - deb http://archive.ubuntu.com/ubuntu/ xenial main universe
+    - deb http://archive.ubuntu.com/ubuntu/ focal main universe
   ppas:
-    - js-reynaud/kicad-5.1
+    - kicad/kicad-5.1-releases
 
 script:
   - # Workaround until
@@ -21,6 +21,17 @@ script:
   - HERE="$(dirname "$(readlink -f "${0}")")"
   - export LD_LIBRARY_PATH="${HERE}"/usr/lib/x86_64-linux-gnu/:"${HERE}"/lib/x86_64-linux-gnu/:"${HERE}"/usr/lib/:"${HERE}"/lib/:$LD_LIBRARY_PATH
   - cd "${HERE}/usr"
-  - exec "./bin/kicad" "$@"
+  - if [ "${1}" = "pcbnew" ]
+  - then
+  - 	echo "running pcbnew standalone!"
+  - 	exec "./bin/pcbnew"
+  - elif [ "${1}" = "eeschema" ]
+  - then
+  - 	echo "running eeschema standalone!"
+  -     exec "./bin/eeschema"
+  - else
+  -	    echo "running kicad AppImage"
+  -  	exec "./bin/kicad" "$@"
+  - fi
   - EOF
   - chmod a+x ./AppRun

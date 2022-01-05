@@ -1,0 +1,37 @@
+# Might be necessary to bundle Python - to be investigated
+
+app: KiCad
+binpatch: true
+
+ingredients:
+  packages:
+    - kicad
+    - libcurl3
+  dist: focal
+  sources:
+    - deb http://archive.ubuntu.com/ubuntu/ focal main universe
+  ppas:
+    - kicad/kicad-6.0-releases
+
+script:
+  - # Workaround until
+  - # AppRun.c exports rather than just sets environment variables
+  - cat > ./AppRun <<\EOF
+  - #!/bin/sh
+  - HERE="$(dirname "$(readlink -f "${0}")")"
+  - export LD_LIBRARY_PATH="${HERE}"/usr/lib/x86_64-linux-gnu/:"${HERE}"/lib/x86_64-linux-gnu/:"${HERE}"/usr/lib/:"${HERE}"/lib/:$LD_LIBRARY_PATH
+  - cd "${HERE}/usr"
+  - if [ "${1}" = "pcbnew" ]
+  - then
+  - 	echo "running pcbnew standalone!"
+  - 	exec "./bin/pcbnew"
+  - elif [ "${1}" = "eeschema" ]
+  - then
+  - 	echo "running eeschema standalone!"
+  -     exec "./bin/eeschema"
+  - else
+  -	    echo "running kicad AppImage"
+  -  	exec "./bin/kicad" "$@"
+  - fi
+  - EOF
+  - chmod a+x ./AppRun
