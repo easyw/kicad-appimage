@@ -7,6 +7,10 @@ ingredients:
   packages:
     - kicad
     - libcurl3
+    - libwxgtk-webview3.0-gtk3 
+    - libwxgtk-media3.0-gtk3
+    - python3-wxgtk4.0
+    - python3-sip
   dist: focal
   sources:
     - deb http://archive.ubuntu.com/ubuntu/ focal main universe
@@ -19,19 +23,22 @@ script:
   - cat > ./AppRun <<\EOF
   - #!/bin/sh
   - HERE="$(dirname "$(readlink -f "${0}")")"
+  - # export PREFIX=${HERE}/usr
   - export LD_LIBRARY_PATH="${HERE}"/usr/lib/x86_64-linux-gnu/:"${HERE}"/lib/x86_64-linux-gnu/:"${HERE}"/usr/lib/:"${HERE}"/lib/:$LD_LIBRARY_PATH
+  - # export LD_LIBRARY_PATH=${HERE}/usr/lib
+  - export PYTHONHOME=${HERE}/usr
   - cd "${HERE}/usr"
-  - if [ "${1}" = "pcbnew" ]
-  - then
-  - 	echo "running pcbnew standalone!"
-  - 	exec "./bin/pcbnew"
-  - elif [ "${1}" = "eeschema" ]
-  - then
-  - 	echo "running eeschema standalone!"
-  -     exec "./bin/eeschema"
+  - if [ ! -z "$1" ] && [ -e "$HERE/usr/bin/$1" ] ; then
+  -     echo "running $1 standalone!"
+  -     MAIN="$HERE/usr/bin/$1" ; shift
   - else
-  -	    echo "running kicad AppImage"
-  -  	exec "./bin/kicad" "$@"
+  -     MAIN="$HERE/usr/bin/kicad"
+  -     echo "running kicad AppImage"
   - fi
+  - # if [ -e "./optional/libstdc++/libstdc++.so.6" ] ; then
+  - #         export LD_PRELOAD="./optional/libstdc++/libstdc++.so.6:${LD_PRELOAD}"
+  - # fi
+  - ${MAIN} "$@"
+  - #LD_PRELOAD=$HERE/usr/lib/libstdc++.so.6 LD_PRELOAD=$HERE/usr/lib/libm.so.6 LD_PRELOAD=$HERE/usr/lib/libc.so.6 ${MAIN} "$@"
   - EOF
   - chmod a+x ./AppRun
