@@ -1,0 +1,46 @@
+# Might be necessary to bundle Python - to be investigated
+
+app: KiCad
+binpatch: true
+
+ingredients:
+  packages:
+    - kicad
+    - libcurl3
+    - libwxgtk-webview3.0-gtk3 
+    - libwxgtk-media3.0-gtk3
+    - python3-wxgtk4.0
+    - python3-sip
+    - librsvg2
+    - libcairo
+  dist: focal
+  sources:
+    - deb http://archive.ubuntu.com/ubuntu/ focal main universe
+  ppas:
+    - kicad/kicad-6.0-nightly
+
+script:
+  - # Workaround until
+  - # AppRun.c exports rather than just sets environment variables
+  - cat > ./AppRun <<\EOF
+  - #!/bin/sh
+  - HERE="$(dirname "$(readlink -f "${0}")")"
+  - # export PREFIX=${HERE}/usr
+  - export LD_LIBRARY_PATH="${HERE}"/usr/lib/x86_64-linux-gnu/:"${HERE}"/lib/x86_64-linux-gnu/:"${HERE}"/usr/lib/:"${HERE}"/lib/:$LD_LIBRARY_PATH
+  - # export LD_LIBRARY_PATH=${HERE}/usr/lib
+  - export PYTHONHOME=${HERE}/usr
+  - cd "${HERE}/usr"
+  - if [ ! -z "$1" ] && [ -e "$HERE/usr/bin/$1" ] ; then
+  -     echo "running $1 standalone!"
+  -     MAIN="$HERE/usr/bin/$1" ; shift
+  - else
+  -     MAIN="$HERE/usr/bin/kicad"
+  -     echo "running kicad AppImage"
+  - fi
+  - # if [ -e "./optional/libstdc++/libstdc++.so.6" ] ; then
+  - #         export LD_PRELOAD="./optional/libstdc++/libstdc++.so.6:${LD_PRELOAD}"
+  - # fi
+  - ${MAIN} "$@"
+  - #LD_PRELOAD=$HERE/usr/lib/libstdc++.so.6 LD_PRELOAD=$HERE/usr/lib/libm.so.6 LD_PRELOAD=$HERE/usr/lib/libc.so.6 ${MAIN} "$@"
+  - EOF
+  - chmod a+x ./AppRun
