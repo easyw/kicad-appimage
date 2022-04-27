@@ -17,7 +17,7 @@ ingredients:
   sources:
     - deb http://archive.ubuntu.com/ubuntu/ focal main universe
   ppas:
-    - kicad/kicad-6.0-nightly
+    - kicad/kicad-dev-nightly
 
 script:
   - # Workaround until
